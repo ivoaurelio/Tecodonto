@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login | Tecodonto Manager</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/login.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="login-body">
+    
+    <div class="login-container fade-in-up">
+        <div class="login-card">
+            <div class="login-header">
+                <img src="assets/logo.png" alt="Tecodonto Logo" class="login-logo">
+                <h2>Acesso ao Painel</h2>
+                <p>Gestão Inteligente de Clínicas</p>
+            </div>
+
+            <form id="form-login" class="modern-form">
+                
+                <div class="form-group">
+                    <label for="loginClinic">ID da Clínica (user_name)</label>
+                    <div class="input-wrapper">
+                        <i class="fa-solid fa-building input-icon"></i>
+                        <input type="text" id="loginClinic" name="loginClinic" placeholder="Ex: clinica_sorriso ou MESTRE" required autocomplete="off">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="loginUser">Login (E-mail ou Usuário)</label>
+                    <div class="input-wrapper">
+                        <i class="fa-solid fa-user input-icon"></i>
+                        <input type="text" id="loginUser" name="loginUser" placeholder="Seu acesso" required autocomplete="username">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="loginPassword">Senha</label>
+                    <div class="input-wrapper">
+                        <i class="fa-solid fa-lock input-icon"></i>
+                        <input type="password" id="loginPassword" name="loginPassword" placeholder="••••••••" required autocomplete="current-password" minlength="6" maxlength="8">
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-primary btn-submit" id="btn-login" style="margin-top: 1.5rem; width: 100%; justify-content: center; padding: 1rem; font-size: 1.1rem; border-radius: 12px;">
+                    <span class="btn-text">Acessar Sistema</span>
+                    <i class="fa-solid fa-arrow-right-to-bracket btn-icon"></i>
+                    <span class="loader" style="display: none;"></span>
+                </button>
+                
+                <div id="loginMessage" class="form-message" style="display: none; margin-top: 1rem;"></div>
+            </form>
+
+            <div class="login-footer">
+                <a href="index.html" class="back-link"><i class="fa-solid fa-arrow-left"></i> Voltar ao site principal</a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="bg-shape shape-1"></div>
+    <div class="bg-shape shape-2"></div>
+    
+    <script src="js/login.js"></script>
+</body>
+</html>

@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel Administrativo | Tecodonto</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/admin.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="js/auth.js"></script>
+    <style>
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 2rem;
+            margin-top: 2.5rem;
+        }
+
+        .dash-card {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            border-radius: 20px;
+            padding: 2.5rem 2rem;
+            text-align: center;
+            transition: var(--transition);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+            cursor: pointer;
+            text-decoration: none;
+            color: inherit;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .dash-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 40px rgba(14, 71, 132, 0.15);
+            border-color: var(--primary-green);
+        }
+
+        .dash-icon {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, var(--primary-blue), #0a3360);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 10px 20px rgba(14, 71, 132, 0.2);
+            transition: var(--transition);
+        }
+
+        .dash-card:hover .dash-icon {
+            transform: scale(1.1) rotate(5deg);
+            background: linear-gradient(135deg, var(--primary-green), #4a7d26);
+            box-shadow: 0 10px 20px rgba(93, 151, 50, 0.3);
+        }
+
+        .dash-icon i {
+            font-size: 2.2rem;
+            color: white;
+        }
+
+        .dash-card h3 {
+            font-size: 1.4rem;
+            margin-bottom: 0.5rem;
+            color: var(--primary-blue);
+        }
+
+        .dash-card p {
+            font-size: 0.95rem;
+            color: var(--text-light);
+            margin-bottom: 0;
+        }
+        
+        .admin-main.dash-main {
+            padding-top: 150px;
+        }
+    </style>
+</head>
+
+<body class="admin-body">
+    <header class="navbar scrolled" id="navbar">
+        <div class="container nav-container">
+            <a href="index.html" class="logo">
+                <img src="assets/logo.png" alt="Tecodonto Logo" id="header-logo">
+            </a>
+            <nav class="nav-menu">
+                <ul class="nav-list">
+                    <li><a href="index.html" class="nav-link">Site Principal</a></li>
+                    <li><a href="admin.html" class="nav-link active">Painel Admin</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <main class="admin-main dash-main">
+        <div class="admin-container fade-in-up" style="max-width: 1000px;">
+            <div class="form-header" style="margin-bottom: 1rem;">
+                <h1>Painel <span>Administrativo</span></h1>
+                <p>Gestão e Controle do Plano de Manutenção Odontológica.</p>
+            </div>
+
+            <div class="dashboard-grid">
+                <a href="cadastro-salas.html" class="dash-card req-suporte">
+                    <div class="dash-icon"><i class="fa-solid fa-door-open"></i></div>
+                    <h3>Cadastro de Salas</h3>
+                    <p>Adicione novas salas clínicas, técnicas ou de suporte.</p>
+                </a>
+
+                <a href="cadastro-ativos.html" class="dash-card req-suporte">
+                    <div class="dash-icon"><i class="fa-solid fa-microscope"></i></div>
+                    <h3>Cadastro de Ativos</h3>
+                    <p>Registre os equipamentos de cada sala com geração automática de ID.</p>
+                </a>
+
+                <a href="relatorio.html" class="dash-card">
+                    <div class="dash-icon"><i class="fa-solid fa-file-lines"></i></div>
+                    <h3>Relatório Geral</h3>
+                    <p>Visualize e imprima a lista completa de controle de manutenção.</p>
+                </a>
+
+                <a href="gestao-equipe.html" class="dash-card req-admin">
+                    <div class="dash-icon" style="background: linear-gradient(135deg, #f59e0b, #b45309);"><i class="fa-solid fa-users"></i></div>
+                    <h3 style="color: #d97706;">Gestão de Equipe</h3>
+                    <p>Adicione ou remova Suportes e Operadores da sua clínica.</p>
+                </a>
+
+                <a href="gestao-clinicas.html" class="dash-card req-superadmin">
+                    <div class="dash-icon" style="background: linear-gradient(135deg, #10b981, #047857);"><i class="fa-solid fa-building-user"></i></div>
+                    <h3 style="color: #059669;">Gestão de Clínicas</h3>
+                    <p>Crie novas clínicas e cadastre seus Administradores gerais.</p>
+                </a>
+            </div>
+        </div>
+        
+        <div class="bg-shape shape-1"></div>
+        <div class="bg-shape shape-2"></div>
+    </main>
+
+</body>
+
+</html>
