@@ -8,7 +8,7 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Customize title with clinic
     const reportTitle = document.querySelector('.form-header h1');
-    const loggedClinic = localStorage.getItem('userName');
+    const loggedClinic = sessionStorage.getItem('userName');
     if (reportTitle && loggedClinic && loggedClinic !== 'MESTRE') {
         reportTitle.innerHTML = `Relatório da Clínica <br><span style="font-size: 1.5rem; color: var(--primary-green);">${loggedClinic.toUpperCase()}</span>`;
     }
@@ -25,15 +25,17 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     if (reportContent) {
-        const userName = localStorage.getItem('userName') || '';
-        fetch(`${scriptURL}?action=getReport&user_name=${userName}`)
-            .then(res => res.json())
-            .then(data => {
-                loaderContainer.style.display = 'none';
-                reportContent.style.display = 'block';
+        const userName = sessionStorage.getItem('userName') || '';
+        Promise.all([
+            window.supabaseFetch(`salas?user_name=eq.${encodeURIComponent(userName)}&select=*`),
+            window.supabaseFetch(`ativos?user_name=eq.${encodeURIComponent(userName)}&select=*`)
+        ])
+        .then(([salasData, ativosData]) => {
+            loaderContainer.style.display = 'none';
+            reportContent.style.display = 'block';
 
-                const salas = data.salas || [];
-                const ativos = data.ativos || [];
+            const salas = salasData || [];
+            const ativos = ativosData || [];
 
                 if(salas.length === 0) {
                     reportContent.innerHTML = `
@@ -48,11 +50,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 let html = '';
 
-                // Sort salas by number
                 salas.sort((a, b) => parseInt(a.numero) - parseInt(b.numero));
 
                 salas.forEach(sala => {
-                    const roomAssets = ativos.filter(a => a.tipo === sala.tipo && String(a.numero) === String(sala.numero));
+                    const roomAssets = ativos.filter(a => a.sala === sala.id);
 
                     html += `
                         <div class="room-section">
@@ -86,10 +87,10 @@ document.addEventListener('DOMContentLoaded', () => {
                             const badge = `<span class="criticality-badge ${criClass[critText] || 'cri-baixa'}">${ativo.criticidade || '-'}</span>`;
                             html += `
                                     <tr>
-                                        <td style="font-weight: 600; color: var(--primary-blue);">${ativo.id}</td>
-                                        <td>${ativo.equipamento}</td>
-                                        <td>${ativo.marca}</td>
-                                        <td>${ativo.serie || '-'}</td>
+                                        <td style="font-weight: 600; color: var(--primary-blue);">${ativo.codigo || ativo.id.substring(0,8)}</td>
+                                        <td>${ativo.tipo}</td>
+                                        <td>${ativo.modelo || '-'}</td>
+                                        <td>${ativo.numero_serie || '-'}</td>
                                         <td>${badge}</td>
                                     </tr>
                             `;

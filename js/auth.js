@@ -2,9 +2,9 @@
 
 (function checkAuth() {
     // 1. Verifica se está logado
-    const loggedUser = localStorage.getItem('loggedUser');
-    const userRole = localStorage.getItem('userRole');
-    const userName = localStorage.getItem('userName'); // Clinic ID
+    const loggedUser = sessionStorage.getItem('loggedUser');
+    const userRole = sessionStorage.getItem('userRole');
+    const userName = sessionStorage.getItem('userName'); // Clinic ID
 
     if (!loggedUser || !userRole || !userName) {
         // Redireciona para o login se não houver sessão e não estiver já no login
@@ -15,15 +15,15 @@
 })();
 
 document.addEventListener('DOMContentLoaded', () => {
-    const userRole = localStorage.getItem('userRole');
-    const userName = localStorage.getItem('userName');
-    const loggedUser = localStorage.getItem('loggedUser');
+    const userRole = sessionStorage.getItem('userRole');
+    const userName = sessionStorage.getItem('userName');
+    const loggedUser = sessionStorage.getItem('loggedUser');
     
     // 2. Injeta um cabeçalho de usuário na Navbar se existir
     const navMenu = document.querySelector('.nav-list');
     if (navMenu && loggedUser && !window.location.href.includes('index.html') && !window.location.href.includes('login.html')) {
         const userLi = document.createElement('li');
-        userLi.innerHTML = `<span class="nav-link" style="color: var(--primary-green); font-weight: 700; cursor: default;"><i class="fa-solid fa-user-circle"></i> ${loggedUser.split(' ')[0]}</span>`;
+        userLi.innerHTML = `<span class="nav-link" style="color: var(--primary-green); font-weight: 700; cursor: default;"><i class="fa-solid fa-user-circle"></i> ${loggedUser.split(' ')[0]} <span style="font-size: 0.75rem; font-weight: 600; color: #475569; background: #e2e8f0; padding: 3px 8px; border-radius: 12px; margin-left: 6px; vertical-align: middle; letter-spacing: 0.5px;">${userName || 'Clínica Padrão'}</span></span>`;
         navMenu.appendChild(userLi);
 
         const logoutLi = document.createElement('li');
@@ -32,7 +32,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         document.getElementById('btn-logout').addEventListener('click', (e) => {
             e.preventDefault();
-            localStorage.clear();
+            sessionStorage.clear();
             window.location.href = 'login.html';
         });
     }
@@ -63,6 +63,47 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         hiddenEditor.value = loggedUser;
     });
+
+    // Replace generic form-header icons with Clinic Logo & Name
+    const formHeaders = document.querySelectorAll('.form-header .icon-wrapper');
+    if (formHeaders.length > 0) {
+        const activeUserName = sessionStorage.getItem('userName');
+        if (activeUserName) {
+            window.supabaseFetch(`clinicas?user_name=eq.${encodeURIComponent(activeUserName)}&select=nome,logo`)
+                .then(data => {
+                    const clinicData = (data && data.length > 0) ? data[0] : { nome: activeUserName, logo: null };
+                    
+                    formHeaders.forEach(wrapper => {
+                        wrapper.innerHTML = '';
+                        wrapper.style.background = 'transparent';
+                        wrapper.style.boxShadow = 'none';
+                        wrapper.style.width = '100%';
+                        wrapper.style.height = 'auto';
+                        wrapper.style.flexDirection = 'column';
+                        wrapper.style.marginBottom = '1rem';
+                        wrapper.style.display = 'flex';
+                        if (clinicData.logo && clinicData.logo.trim() !== '') {
+                            let imageSrc = clinicData.logo.trim();
+                            if (!imageSrc.startsWith('http') && !imageSrc.startsWith('data:')) {
+                                imageSrc = 'data:image/png;base64,' + imageSrc;
+                            }
+                            wrapper.innerHTML = `<img src="${imageSrc}" style="max-width: 140px; max-height: 80px; object-fit: contain; margin-bottom: 0.5rem; border-radius: 4px;" onerror="this.style.display='none'">`;
+                        } else {
+                            wrapper.innerHTML = '';
+                        }
+                        
+                        wrapper.innerHTML += `<h3 style="color: var(--primary-blue); margin: 0; font-size: 1.15rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px;">${clinicData.nome}</h3>`;
+                    });
+                })
+                .catch(err => {
+                    formHeaders.forEach(wrapper => {
+                        wrapper.innerHTML = `<h3 style="color: var(--primary-blue); margin: 0;">${activeUserName}</h3>`;
+                        wrapper.style.background = 'transparent';
+                        wrapper.style.boxShadow = 'none';
+                    });
+                });
+        }
+    }
 });
 
 function applyRoleRestrictions(role) {

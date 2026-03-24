@@ -12,6 +12,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
         rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="js/supabase.js"></script>
     <script src="js/auth.js"></script>
 </head>
 
@@ -45,7 +46,7 @@
             <div class="admin-card">
                 <form id="form-cadastro-salas" class="modern-form">
                     
-                    <input type="hidden" name="formType" value="Salas">
+                    <input type="hidden" name="formType" value="CadastroSala">
                     
                     <div class="form-group">
                         <label for="roomType">Tipo de Sala</label>
@@ -89,11 +90,16 @@
                         </div>
                     </div>
 
-                    <button type="submit" class="btn btn-primary btn-submit" id="submitBtn">
-                        <span class="btn-text">Cadastrar Sala</span>
-                        <i class="fa-solid fa-check btn-icon"></i>
-                        <span class="loader" style="display: none;"></span>
-                    </button>
+                    <div style="display: flex; gap: 1rem; margin-top: 1rem; align-items: stretch;">
+                        <button type="submit" class="btn btn-primary btn-submit" id="submitBtn" style="margin: 0; background: #059669; border: none; flex: 1; color: white; padding: 0.8rem 1.5rem; border-radius: 8px; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 0.5rem;">
+                            <span class="btn-text">Cadastrar Sala</span>
+                            <i class="fa-solid fa-check btn-icon" style="margin: 0;"></i>
+                            <span class="loader" style="display: none;"></span>
+                        </button>
+                        <button type="reset" class="btn" style="margin: 0; background: #f97316; color: white; border: none; font-weight: 600; padding: 0.8rem 1.5rem; border-radius: 8px; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 0.5rem;">
+                            <i class="fa-solid fa-eraser"></i> Limpar Campos
+                        </button>
+                    </div>
                     
                     <div id="formMessage" class="form-message" style="display: none;"></div>
                 </form>
@@ -102,8 +108,8 @@
             <!-- Lista de Salas Registradas -->
             <div id="salas-container" class="admin-card" style="margin-top: 2rem;">
                 <h3 style="margin-bottom: 1.5rem; color: var(--text-dark); border-bottom: 1px solid #f1f5f9; padding-bottom: 0.5rem;"><i class="fa-solid fa-list-check"></i> Salas Cadastradas</h3>
-                <div id="salasList" style="text-align: center; padding: 1rem;">
-                    <p style="color: var(--text-light);"><span class="loader" style="display:inline-block; border-top-color: var(--primary-green); width:20px; height:20px;"></span> Carregando salas...</p>
+                <div id="salasList" style="padding: 1rem;">
+                    <p style="color: var(--text-light); text-align: center;"><span class="loader" style="display:inline-block; border-top-color: var(--primary-green); width:20px; height:20px;"></span> Carregando salas...</p>
                 </div>
             </div>
 
@@ -116,28 +122,75 @@
     <script src="js/admin.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            const userName = localStorage.getItem('userName') || '';
-            const scriptURL = 'https://script.google.com/macros/s/AKfycbzED4U_6fqEidlD2zAjl81W4Z3vyv51XrzfMWhtJfVHZANqg7UCgiscQ1fUTnzdj-KFWA/exec';
+            const userName = sessionStorage.getItem('userName') || '';
             const salasList = document.getElementById('salasList');
             if (salasList) {
-                fetch(`${scriptURL}?action=getRooms&user_name=${userName}`)
-                    .then(res => res.json())
-                    .then(data => {
-                        const salas = data.salas || [];
-                        if(salas.length === 0) {
-                            salasList.innerHTML = '<p class="empty-state">Nenhuma sala cadastrada ainda.</p>';
-                        } else {
-                            let html = '<table class="assets-table" style="font-size: 0.9rem;"><thead><tr><th>Tipo</th><th>Sala</th><th>Número</th></tr></thead><tbody>';
-                            salas.forEach(s => {
-                                html += `<tr><td>${s.tipo}</td><td>${s.nome}</td><td><strong>${s.numero}</strong></td></tr>`;
-                            });
-                            html += '</tbody></table>';
-                            salasList.innerHTML = html;
-                        }
-                    })
-                    .catch(err => salasList.innerHTML = '<p style="color:red">Erro de conexão.</p>');
+                window.cancelarEdicaoSala = function() {
+                    const form = document.getElementById('form-cadastro-salas');
+                    if (form) delete form.dataset.editId;
+                    const btn = document.getElementById('submitBtn');
+                    if (btn) btn.querySelector('.btn-text').textContent = 'Cadastrar Sala';
+                };
+
+                window.editarSala = function(id) {
+                    if (!window.currentSalas) return;
+                    const sala = window.currentSalas.find(s => s.id === id);
+                    if (!sala) return;
+                    
+                    document.getElementById('roomType').value = sala.tipo;
+                    document.getElementById('roomName').value = sala.nome;
+                    document.getElementById('roomNumber').value = sala.numero;
+                    
+                    const form = document.getElementById('form-cadastro-salas');
+                    form.dataset.editId = sala.id;
+                    document.getElementById('submitBtn').querySelector('.btn-text').textContent = 'Atualizar Sala';
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                };
+
+                window.deletarSala = function(id) {
+                    window.mostrarConfirmacaoGlobal("ATENÇÃO: A exclusão desta Sala também apagará TODOS os equipamentos e ativos vinculados a ela do sistema. Tem certeza que deseja continuar?", true, () => {
+                        // Deleta os ativos vinculados a esta sala primeiro para evitar orfãos
+                        window.supabaseFetch(`ativos?sala=eq.${encodeURIComponent(id)}`, { method: 'DELETE' })
+                            .then(() => {
+                                // Depois deleta a sala
+                                return window.supabaseFetch(`salas?id=eq.${encodeURIComponent(id)}`, { method: 'DELETE' });
+                            })
+                            .then(() => document.dispatchEvent(new Event('salaCadastrada')))
+                            .catch(err => window.mostrarAlertaGlobal('Erro ao excluir sala ou ativos: ' + err.message, false));
+                    });
+                };
+
+                function carregarSalas() {
+                    salasList.innerHTML = '<p style="color: var(--text-light); text-align: center;"><span class="loader" style="display:inline-block; border-top-color: var(--primary-green); width:20px; height:20px;"></span> Carregando salas...</p>';
+                    window.supabaseFetch(`salas?user_name=eq.${encodeURIComponent(userName)}&select=*&order=numero.asc`)
+                        .then(salas => {
+                            window.currentSalas = salas || [];
+                            if (!salas || salas.length === 0) {
+                                salasList.innerHTML = '<p class="empty-state">Nenhuma sala cadastrada ainda.</p>';
+                            } else {
+                                let html = '<div style="overflow-x: auto; width: 100%;"><table class="assets-table" style="font-size: 0.95rem; width: 100%; text-align: left; min-width: 500px;"><thead><tr><th style="width: 80px; text-align: center;">Ações</th><th style="text-align: left;">Tipo</th><th style="text-align: left;">Sala</th></tr></thead><tbody>';
+                                salas.forEach(s => {
+                                    html += `<tr>
+                                        <td style="white-space: nowrap; text-align: center;">
+                                            <button type="button" onclick="editarSala('${s.id}')" title="Editar" style="background:none; border:none; color:#0ea5e9; cursor:pointer; margin-right:8px; font-size:1.1rem;"><i class="fa-solid fa-pen-to-square"></i></button>
+                                            <button type="button" onclick="deletarSala('${s.id}')" title="Excluir" style="background:none; border:none; color:#ef4444; cursor:pointer; font-size:1.1rem;"><i class="fa-solid fa-trash-can"></i></button>
+                                        </td>
+                                        <td style="padding: 0.8rem;">${s.tipo}</td>
+                                        <td style="padding: 0.8rem;">${s.nome}</td>
+                                    </tr>`;
+                                });
+                                html += '</tbody></table></div>';
+                                salasList.innerHTML = html;
+                            }
+                        })
+                        .catch(err => salasList.innerHTML = '<p style="color:red">Erro de conexão com o banco.</p>');
+                }
+                
+                carregarSalas();
+                document.addEventListener('salaCadastrada', carregarSalas);
             }
         });
     </script>
 </body>
 </html>
+

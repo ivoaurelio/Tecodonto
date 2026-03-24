@@ -10,6 +10,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="js/supabase.js"></script>
     <script src="js/auth.js"></script>
 </head>
 <body class="admin-body">
@@ -42,6 +43,16 @@
                     
                     <input type="hidden" name="formType" value="CadastroUsuario">
                     
+                    <div class="form-group req-superadmin" style="display: none;" id="targetClinicGroup">
+                        <label for="targetClinic">Vincular a qual Clínica? (Admin Global)</label>
+                        <div class="select-wrapper">
+                            <select id="targetClinic" name="targetClinic">
+                                <option value="" selected>Nenhuma clínica carregada</option>
+                            </select>
+                            <i class="fa-solid fa-chevron-down select-icon"></i>
+                        </div>
+                    </div>
+
                     <div class="form-group">
                         <label for="userName">Nome Completo</label>
                         <div class="input-wrapper">
@@ -61,18 +72,35 @@
 
                         <div class="form-group">
                             <label for="userPassword">Senha</label>
-                            <div class="input-wrapper">
+                            <div class="input-wrapper" style="position: relative;">
                                 <i class="fa-solid fa-key input-icon"></i>
                                 <input type="password" id="userPassword" name="senha" placeholder="6 a 8 caracteres" required minlength="6" maxlength="8">
+                                <i class="fa-solid fa-eye" id="toggleUserPassword" style="position: absolute; right: 1.5rem; top: 50%; transform: translateY(-50%); cursor: pointer; color: var(--text-light); font-size: 1.2rem; z-index: 5;" title="Mostrar senha"></i>
                             </div>
                         </div>
                     </div>
+                    
+                    <script>
+                        document.addEventListener('DOMContentLoaded', () => {
+                            const toggleUserPassword = document.getElementById('toggleUserPassword');
+                            const userPassword = document.getElementById('userPassword');
+                            if (toggleUserPassword && userPassword) {
+                                toggleUserPassword.addEventListener('click', () => {
+                                    const type = userPassword.getAttribute('type') === 'password' ? 'text' : 'password';
+                                    userPassword.setAttribute('type', type);
+                                    toggleUserPassword.classList.toggle('fa-eye');
+                                    toggleUserPassword.classList.toggle('fa-eye-slash');
+                                });
+                            }
+                        });
+                    </script>
 
                     <div class="form-group">
                         <label for="userLevel">Nível de Acesso</label>
                         <div class="select-wrapper">
                             <select id="userLevel" name="nivel" required>
                                 <option value="" disabled selected>Selecione o cargo</option>
+                                <option value="Administrador">Administrador (Gestor da Clínica)</option>
                                 <option value="Suporte">Suporte (Edição Total)</option>
                                 <option value="Operador">Operador (Visualização Apenas)</option>
                             </select>
@@ -80,11 +108,16 @@
                         </div>
                     </div>
 
-                    <button type="submit" class="btn btn-primary btn-submit" id="submitBtnEquipe" style="background: #d97706;">
-                        <span class="btn-text">Cadastrar Membro</span>
-                        <i class="fa-solid fa-user-plus btn-icon"></i>
-                        <span class="loader" style="display: none;"></span>
-                    </button>
+                    <div style="display: flex; gap: 1rem; margin-top: 1rem; align-items: stretch;">
+                        <button type="submit" class="btn btn-primary btn-submit" id="submitBtnEquipe" style="margin: 0; background: #059669; border: none; flex: 1; color: white; padding: 0.8rem 1.5rem; border-radius: 8px; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 0.5rem;">
+                            <span class="btn-text">Cadastrar Membro</span>
+                            <i class="fa-solid fa-user-plus btn-icon" style="margin: 0;"></i>
+                            <span class="loader" style="display: none;"></span>
+                        </button>
+                        <button type="button" class="btn" onclick="cancelarEdicaoUsuario()" style="margin: 0; background: #f97316; color: white; border: none; font-weight: 600; padding: 0.8rem 1.5rem; border-radius: 8px; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 0.5rem;">
+                            <i class="fa-solid fa-eraser"></i> Limpar / Cancelar
+                        </button>
+                    </div>
                     
                     <div id="formMessageEquipe" class="form-message" style="display: none;"></div>
                 </form>
@@ -93,8 +126,10 @@
             <!-- Lista de Usuários da Clínica -->
             <div class="admin-card req-admin" style="margin-top: 2rem;">
                 <h3 style="margin-bottom: 1.5rem; color: var(--text-dark);">Equipe Atual</h3>
-                <div id="equipeList" style="text-align: center; padding: 2rem;">
-                    <p style="color: var(--text-light);"><i class="fa-solid fa-circle-info"></i> A listagem da equipe deve ser implementada via backend ou você pode consultá-la via Relatório.</p>
+                <div style="max-height: 250px; overflow-y: auto; overflow-x: auto; padding-right: 0.5rem;" class="custom-scrollbar">
+                    <div id="equipeList" style="text-align: left; padding: 1rem 0;">
+                        <p style="color: var(--text-light);"><span class="loader" style="display:inline-block; border-top-color: var(--primary-green); width:20px; height:20px;"></span> Carregando informações da nuvem...</p>
+                    </div>
                 </div>
             </div>
         </div>
@@ -107,3 +142,4 @@
     <script src="js/gestao.js"></script>
 </body>
 </html>
+

@@ -10,6 +10,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="js/supabase.js"></script>
     <script src="js/auth.js"></script>
 </head>
 <body class="admin-body">
@@ -42,9 +43,9 @@
                     
                     <input type="hidden" name="formType" value="CadastroClinica">
                     
-                    <h3 style="margin-bottom: 1rem; color: var(--primary-blue); font-size: 1.1rem; border-bottom: 1px solid #f1f5f9; padding-bottom: 0.5rem;"><i class="fa-solid fa-1"></i> Dados da Clínica</h3>
+                    <h3 style="margin-bottom: 0.5rem; color: var(--primary-blue); font-size: 1.1rem; border-bottom: 1px solid #f1f5f9; padding-bottom: 0.2rem;"><i class="fa-solid fa-1"></i> Dados da Clínica</h3>
                     
-                    <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem;">
+                    <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 0.5rem;">
                         <div class="form-group">
                             <label for="newClinicId">ID da Clínica (user_name)</label>
                             <p style="font-size: 0.8rem; color: var(--text-light); margin-top: -5px; margin-bottom: 5px;">Sem espaços. Ex: clinica_sorriso</p>
@@ -62,9 +63,93 @@
                                 <input type="text" id="newClinicName" name="newClinicName" placeholder="Nome Fantasia" required>
                             </div>
                         </div>
+
+                        <!-- LOGO UPLOAD -->
+                        <div class="form-group" style="grid-column: 1 / -1; margin-top: 0.5rem; margin-bottom: 1.5rem; padding: 1rem; background: rgba(241, 245, 249, 0.5); border-radius: 12px; border: 1px dashed #cbd5e1;">
+                            <label>Logo da Clínica (Opcional)</label>
+                            <p style="font-size: 0.8rem; color: var(--text-light); margin-top: -5px; margin-bottom: 12px;">
+                                Proporção recomendada: <strong>1:1 (Quadrada)</strong> ou <strong>3:1 (Retangular)</strong>.<br>
+                                Resolução ideal para os laudos: <strong>200x200px</strong> ou <strong>300x100px</strong>. (O sistema otimizará a imagem sozinha!)
+                            </p>
+                            <div style="display: flex; align-items: center; gap: 1.2rem;">
+                                <div style="width: 70px; height: 70px; border-radius: 12px; border: 1px solid #cbd5e1; display: flex; align-items: center; justify-content: center; background: white; overflow: hidden; flex-shrink: 0;" id="logoPreviewContainer">
+                                    <i class="fa-solid fa-image" style="color: #94a3b8; font-size: 1.5rem;" id="logoPlaceholderIcon"></i>
+                                    <img id="logoPreview" src="" alt="Logo" style="display: none; width: 100%; height: 100%; object-fit: contain;">
+                                </div>
+                                <div style="flex-grow: 1;">
+                                    <label for="clinicLogo" class="btn" style="display: inline-block; cursor: pointer; padding: 0.5rem 1rem; background: white; border: 1px solid var(--primary-blue); color: var(--primary-blue); border-radius: 8px; font-weight: 500; font-size: 0.85rem; transition: 0.3s; margin-bottom: 0;">
+                                        <i class="fa-solid fa-upload"></i> Escolher Imagem
+                                    </label>
+                                    <input type="file" id="clinicLogo" accept="image/png, image/jpeg, image/webp" style="display: none;">
+                                    <input type="hidden" name="logoBase64" id="hiddenLogoBase64">
+                                    <p id="logoFileName" style="font-size: 0.8rem; color: var(--text-light); margin-top: 0.5rem; margin-bottom: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 250px;">Nenhuma imagem selecionada</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <script>
+                            document.addEventListener('DOMContentLoaded', () => {
+                                const clinicLogoFile = document.getElementById('clinicLogo');
+                                const logoPreviewImg = document.getElementById('logoPreview');
+                                const logoPlaceholderIconImg = document.getElementById('logoPlaceholderIcon');
+                                const hiddenLogoBase64Input = document.getElementById('hiddenLogoBase64');
+                                const logoFileNameText = document.getElementById('logoFileName');
+
+                                if (clinicLogoFile) {
+                                    clinicLogoFile.addEventListener('change', (e) => {
+                                        const file = e.target.files[0];
+                                        if (!file) return;
+
+                                        logoFileNameText.textContent = file.name;
+
+                                        const reader = new FileReader();
+                                        reader.onload = (event) => {
+                                            const img = new Image();
+                                            img.onload = () => {
+                                                // Otimizar Imagem - Max 250px
+                                                const MAX_SIZE = 250;
+                                                let width = img.width;
+                                                let height = img.height;
+
+                                                if (width > height) {
+                                                    if (width > MAX_SIZE) {
+                                                        height *= MAX_SIZE / width;
+                                                        width = MAX_SIZE;
+                                                    }
+                                                } else {
+                                                    if (height > MAX_SIZE) {
+                                                        width *= MAX_SIZE / height;
+                                                        height = MAX_SIZE;
+                                                    }
+                                                }
+
+                                                const canvas = document.createElement('canvas');
+                                                canvas.width = width;
+                                                canvas.height = height;
+                                                const ctx = canvas.getContext('2d');
+                                                ctx.drawImage(img, 0, 0, width, height);
+                                                
+                                                // Qualidade 0.8 para webp economiza ~70% de espaço
+                                                const base64Full = canvas.toDataURL('image/webp', 0.8);
+                                                
+                                                logoPreviewImg.src = base64Full;
+                                                logoPreviewImg.style.display = 'block';
+                                                logoPlaceholderIconImg.style.display = 'none';
+                                                
+                                                // Remove prefix to bypass Google Apps Script anti-XSS filters
+                                                const base64Raw = base64Full.split(',')[1];
+                                                hiddenLogoBase64Input.value = base64Raw;
+                                            };
+                                            img.src = event.target.result;
+                                        };
+                                        reader.readAsDataURL(file);
+                                    });
+                                }
+                            });
+                        </script>
                     </div>
 
-                    <h3 style="margin-bottom: 1rem; color: var(--primary-blue); font-size: 1.1rem; border-bottom: 1px solid #f1f5f9; padding-bottom: 0.5rem;"><i class="fa-solid fa-2"></i> Primeiro Administrador</h3>
+                    <h3 style="margin-bottom: 0.5rem; color: var(--primary-blue); font-size: 1.1rem; border-bottom: 1px solid #f1f5f9; padding-bottom: 0.2rem;"><i class="fa-solid fa-2"></i> Primeiro Administrador</h3>
                     
                     <div class="form-group">
                         <label for="adminName">Nome do Responsável</label>
@@ -85,28 +170,64 @@
 
                         <div class="form-group">
                             <label for="adminPassword">Senha Inicial</label>
-                            <div class="input-wrapper">
+                            <div class="input-wrapper" style="position: relative;">
                                 <i class="fa-solid fa-key input-icon"></i>
                                 <input type="password" id="adminPassword" name="senha" placeholder="6 a 8 caracteres" required minlength="6" maxlength="8">
+                                <i class="fa-solid fa-eye" id="toggleAdminPassword" style="position: absolute; right: 1.5rem; top: 50%; transform: translateY(-50%); cursor: pointer; color: var(--text-light); font-size: 1.2rem; z-index: 5;" title="Mostrar senha"></i>
                             </div>
                         </div>
                     </div>
                     
+                    <script>
+                        document.addEventListener('DOMContentLoaded', () => {
+                            const toggleAdminPassword = document.getElementById('toggleAdminPassword');
+                            const adminPassword = document.getElementById('adminPassword');
+                            if (toggleAdminPassword && adminPassword) {
+                                toggleAdminPassword.addEventListener('click', () => {
+                                    const type = adminPassword.getAttribute('type') === 'password' ? 'text' : 'password';
+                                    adminPassword.setAttribute('type', type);
+                                    toggleAdminPassword.classList.toggle('fa-eye');
+                                    toggleAdminPassword.classList.toggle('fa-eye-slash');
+                                });
+                            }
+                        });
+                    </script>
+
                     <!-- Nível Forçado Oculto -->
                     <input type="hidden" name="nivel" value="Administrador">
 
-                    <button type="submit" class="btn btn-primary btn-submit" id="submitBtnClinica" style="background: #059669; border: none; margin-top: 1rem;">
-                        <span class="btn-text">Implantar Clínica</span>
-                        <i class="fa-solid fa-check-double btn-icon"></i>
-                        <span class="loader" style="display: none;"></span>
-                    </button>
+                    <div style="display: flex; gap: 1rem; margin-top: 1rem; align-items: stretch;">
+                        <button type="submit" class="btn btn-primary btn-submit" id="submitBtnClinica" style="margin: 0; background: #059669; border: none; flex: 1; color: white; padding: 0.8rem 1.5rem; border-radius: 8px; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 0.5rem;">
+                            <span class="btn-text">Implantar Clínica</span>
+                            <i class="fa-solid fa-check-double btn-icon" style="margin: 0;"></i>
+                            <span class="loader" style="display: none;"></span>
+                        </button>
+                        <button type="button" class="btn" onclick="cancelarEdicaoClinica()" style="margin: 0; background: #f97316; color: white; border: none; font-weight: 600; padding: 0.8rem 1.5rem; border-radius: 8px; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 0.5rem;">
+                            <i class="fa-solid fa-eraser"></i> Limpar / Cancelar
+                        </button>
+                    </div>
                     
                     <div id="formMessageClinica" class="form-message" style="display: none;"></div>
                 </form>
+            </div>
+
             <div class="admin-card req-superadmin" style="margin-top: 2rem;">
-                <h3 style="margin-bottom: 1.5rem; color: var(--text-dark);">Clínicas Registradas</h3>
-                <div id="clinicasList" style="text-align: center; padding: 2rem;">
-                    <p style="color: var(--text-light);"><span class="loader" style="display:inline-block; border-top-color: var(--primary-green); width:20px; height:20px;"></span> Carregando informações da nuvem...</p>
+                <h3 style="margin-bottom: 1.5rem; color: var(--text-dark); border-bottom: 1px solid #f1f5f9; padding-bottom: 0.5rem;"><i class="fa-solid fa-list-ul"></i> Clínicas Registradas</h3>
+                
+                <div style="max-height: 250px; overflow-y: auto; padding-right: 0.5rem;" class="custom-scrollbar">
+                    <div id="clinicasList" style="text-align: left; padding: 1rem 0;">
+                        <p style="color: var(--text-light); text-align: center;"><span class="loader" style="display:inline-block; border-top-color: var(--primary-green); width:20px; height:20px;"></span> Carregando informações da nuvem...</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="admin-card req-superadmin" style="margin-top: 2rem; border-left: 4px solid #ef4444;">
+                <h3 style="margin-bottom: 1.5rem; color: #ef4444; border-bottom: 1px solid #f1f5f9; padding-bottom: 0.5rem;"><i class="fa-solid fa-bug"></i> Log de Erros do Sistema (Restrito)</h3>
+                
+                <div style="max-height: 250px; overflow-y: auto; overflow-x: auto; padding-right: 0.5rem;" class="custom-scrollbar">
+                    <div id="errorLogsList" style="text-align: left; padding: 1rem 0;">
+                        <p style="color: var(--text-light); text-align: center;"><span class="loader" style="display:inline-block; border-top-color: #ef4444; width:20px; height:20px;"></span> Buscando registros de erro...</p>
+                    </div>
                 </div>
             </div>
             
@@ -120,3 +241,4 @@
     <script src="js/gestao.js"></script>
 </body>
 </html>
+

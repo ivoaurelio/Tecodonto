@@ -3,19 +3,45 @@
 .login-body {
     background-color: var(--light-blue);
     min-height: 100vh;
+    width: 100vw;
     display: flex;
     align-items: center;
-    justify-content: center;
+    justify-content: flex-end;
     position: relative;
     overflow: hidden;
-    padding: 2rem;
+    padding: 2rem 10%;
+    margin: 0;
 }
 
 .login-container {
     width: 100%;
-    max-width: 450px;
+    max-width: 440px;
+    margin-left: auto;
+    margin-right: 0;
     position: relative;
     z-index: 10;
+}
+
+/* Campos ajustados no tamanho ideal */
+.login-card .input-wrapper input {
+    padding: 0.9rem 3.0rem 0.9rem 2.8rem;
+    font-size: 1.05rem;
+    height: auto;
+}
+
+.login-card .input-icon {
+    font-size: 1.1rem;
+    left: 1.0rem;
+}
+
+.login-card label {
+    font-size: 1.0rem;
+    margin-bottom: 0.4rem;
+}
+
+.login-card .btn-submit {
+    padding: 0.9rem;
+    font-size: 1.05rem;
 }
 
 .login-card {
@@ -23,7 +49,7 @@
     backdrop-filter: blur(20px);
     border: 1px solid rgba(255, 255, 255, 0.8);
     border-radius: 20px;
-    padding: 3rem 3rem;
+    padding: 2.5rem 3rem;
     box-shadow: 0 15px 35px rgba(14, 71, 132, 0.1);
     display: flex;
     flex-direction: column;
@@ -36,7 +62,7 @@
 
 .login-header {
     text-align: center;
-    margin-bottom: 2.5rem;
+    margin-bottom: 2.0rem;
 }
 
 .login-logo {

@@ -12,6 +12,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
         rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="js/supabase.js"></script>
     <script src="js/auth.js"></script>
 </head>
 
@@ -45,7 +46,7 @@
             <div class="admin-card">
                 <form id="form-cadastro-ativos" class="modern-form">
                     
-                    <input type="hidden" name="formType" value="Ativos">
+                    <input type="hidden" name="formType" value="CadastroAtivo">
                     
                     <!-- LOCALIZAÇÃO DINÂMICA -->
                     <div class="form-group">
@@ -126,11 +127,16 @@
                         </div>
                     </div>
 
-                    <button type="submit" class="btn btn-primary btn-submit" id="submitBtnAtivos">
-                        <span class="btn-text">Cadastrar Equipamento</span>
-                        <i class="fa-solid fa-check btn-icon"></i>
-                        <span class="loader" style="display: none;"></span>
-                    </button>
+                    <div style="display: flex; gap: 1rem; margin-top: 1rem; align-items: stretch;">
+                        <button type="submit" class="btn btn-primary btn-submit" id="submitBtnAtivos" style="margin: 0; background: #059669; border: none; flex: 1; color: white; padding: 0.8rem 1.5rem; border-radius: 8px; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 0.5rem;">
+                            <span class="btn-text">Cadastrar Equipamento</span>
+                            <i class="fa-solid fa-check btn-icon" style="margin: 0;"></i>
+                            <span class="loader" style="display: none;"></span>
+                        </button>
+                        <button type="reset" class="btn" onclick="cancelarEdicaoAtivo();" style="margin: 0; background: #f97316; color: white; border: none; font-weight: 600; padding: 0.8rem 1.5rem; border-radius: 8px; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 0.5rem;">
+                            <i class="fa-solid fa-eraser"></i> Limpar / Cancelar
+                        </button>
+                    </div>
                     
                     <div id="formMessageAtivos" class="form-message" style="display: none;"></div>
                 </form>
@@ -139,8 +145,8 @@
             <!-- Lista de Ativos Registrados -->
             <div id="ativos-container" class="admin-card" style="margin-top: 2rem;">
                 <h3 style="margin-bottom: 1.5rem; color: var(--text-dark); border-bottom: 1px solid #f1f5f9; padding-bottom: 0.5rem;"><i class="fa-solid fa-list-check"></i> Ativos Cadastrados</h3>
-                <div id="ativosList" style="text-align: center; padding: 1rem;">
-                    <p style="color: var(--text-light);"><span class="loader" style="display:inline-block; border-top-color: var(--primary-green); width:20px; height:20px;"></span> Carregando ativos...</p>
+                <div id="ativosList" style="padding: 1rem;">
+                    <p style="color: var(--text-light); text-align: center;"><span class="loader" style="display:inline-block; border-top-color: var(--primary-green); width:20px; height:20px;"></span> Carregando ativos...</p>
                 </div>
             </div>
 
@@ -149,39 +155,110 @@
         <div class="bg-shape shape-2"></div>
     </main>
 
+    <script src="js/supabase.js"></script>
     <script src="js/admin.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            const userName = localStorage.getItem('userName') || '';
-            const scriptURL = 'https://script.google.com/macros/s/AKfycbzED4U_6fqEidlD2zAjl81W4Z3vyv51XrzfMWhtJfVHZANqg7UCgiscQ1fUTnzdj-KFWA/exec';
+            const userName = sessionStorage.getItem('userName') || '';
             const ativosList = document.getElementById('ativosList');
             if (ativosList) {
-                fetch(`${scriptURL}?action=getReport&user_name=${userName}`)
-                    .then(res => res.json())
-                    .then(data => {
-                        const ativos = data.ativos || [];
+                window.cancelarEdicaoAtivo = function() {
+                    const form = document.getElementById('form-cadastro-ativos');
+                    if (form) delete form.dataset.editId;
+                    const btn = document.getElementById('submitBtnAtivos');
+                    if (btn) btn.querySelector('.btn-text').textContent = 'Cadastrar Equipamento';
+                    document.getElementById('otherAssetGroup').style.display='none';
+                };
+
+                window.editarAtivo = function(id) {
+                    if (!window.currentAtivos) return;
+                    const ativo = window.currentAtivos.find(a => a.id === id);
+                    if (!ativo) return;
+                    
+                    document.getElementById('registeredRoom').value = ativo.sala;
+                    
+                    const selectTipo = document.getElementById('assetType');
+                    const arrayTiposPadroes = ["Cadeira Odontológica", "Equipo", "Refletor", "Unidade de Água", "Mocho", "Compressor", "Bomba a Vácuo", "Autoclave", "Destiladora de Água", "Incubadora", "Fotopolimerizador", "Aparelho de Profilaxia", "Ultrassom", "Motor Endodôntico", "Localizador Apical", "Motor de Implante", "Raio-X (Periapical/Panorâmico)", "Sensor Digital", "Amalgamador", "Misturador de Alginato"];
+                    
+                    if (arrayTiposPadroes.includes(ativo.tipo)) {
+                        selectTipo.value = ativo.tipo;
+                        document.getElementById('otherAssetGroup').style.display = 'none';
+                    } else {
+                        selectTipo.value = "Outros";
+                        document.getElementById('otherAssetGroup').style.display = 'block';
+                        document.getElementById('otherAsset').value = ativo.tipo;
+                    }
+                    
+                    document.getElementById('brandModel').value = ativo.modelo || '';
+                    document.getElementById('serialNumber').value = ativo.numero_serie || '';
+                    
+                    const criRadios = document.getElementsByName('criticality');
+                    for (let r of criRadios) {
+                        if (r.value === ativo.criticidade) r.checked = true;
+                    }
+                    
+                    const form = document.getElementById('form-cadastro-ativos');
+                    form.dataset.editId = ativo.id;
+                    document.getElementById('submitBtnAtivos').querySelector('.btn-text').textContent = 'Atualizar Equipamento';
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                };
+
+                window.deletarAtivo = function(id) {
+                    window.mostrarConfirmacaoGlobal("Tem certeza que deseja excluir este equipamento?", true, () => {
+                        window.supabaseFetch(`ativos?id=eq.${encodeURIComponent(id)}`, { method: 'DELETE' })
+                            .then(() => document.dispatchEvent(new Event('ativoCadastrado')))
+                            .catch(err => window.mostrarAlertaGlobal('Erro ao excluir: ' + err.message, false));
+                    });
+                };
+
+                function carregarAtivos() {
+                    ativosList.innerHTML = '<p style="color: var(--text-light); text-align: center;"><span class="loader" style="display:inline-block; border-top-color: var(--primary-green); width:20px; height:20px;"></span> Carregando ativos...</p>';
+                    Promise.all([
+                        window.supabaseFetch(`salas?user_name=eq.${encodeURIComponent(userName)}&select=id,numero,nome`),
+                        window.supabaseFetch(`ativos?user_name=eq.${encodeURIComponent(userName)}&select=*&order=created_at.desc`)
+                    ])
+                    .then(([salasData, ativosData]) => {
+                        const roomMap = {};
+                        salasData.forEach(r => {
+                            roomMap[r.id] = r.nome ? r.nome : `Sala ${r.numero}`;
+                        });
+                        
+                        window.currentAtivos = ativosData || [];
+                        const ativos = window.currentAtivos;
                         if(ativos.length === 0) {
                             ativosList.innerHTML = '<p class="empty-state">Nenhum equipamento cadastrado ainda.</p>';
                         } else {
-                            let html = '<table class="assets-table" style="font-size: 0.9rem;"><thead><tr><th>ID</th><th>Equipamento</th><th>Marca</th><th>Local</th><th>Criticidade</th></tr></thead><tbody>';
+                            let html = '<div style="overflow-x: auto; width: 100%;"><table class="assets-table" style="font-size: 0.95rem; width: 100%; text-align: left; min-width: 650px;"><thead><tr><th style="width: 80px; text-align: center;">Ações</th><th style="text-align: left;">Cód / ID</th><th style="text-align: left;">Tipo</th><th style="text-align: left;">Local</th><th style="text-align: left;">Marca / Modelo</th><th style="text-align: left;">Criticidade</th></tr></thead><tbody>';
                             ativos.forEach(a => {
                                 let bg = a.criticidade === 'Baixa' ? '#e2e8f0' : (a.criticidade === 'Média' ? '#fef08a' : '#fecaca');
                                 let fr = a.criticidade === 'Baixa' ? '#334155' : (a.criticidade === 'Média' ? '#854d0e' : '#991b1b');
                                 html += `<tr>
-                                    <td><strong>${a.id}</strong></td>
-                                    <td>${a.equipamento}</td>
-                                    <td>${a.marca}</td>
-                                    <td>Sala ${a.numero}</td>
-                                    <td><span class="criticality-badge" style="background:${bg}; color:${fr}; font-size: 0.75rem; padding: 0.2rem 0.5rem; text-transform: uppercase;">${a.criticidade}</span></td>
+                                    <td style="white-space: nowrap; text-align: center;">
+                                        <button type="button" onclick="editarAtivo('${a.id}')" title="Editar" style="background:none; border:none; color:#0ea5e9; cursor:pointer; margin-right:8px; font-size:1.1rem;"><i class="fa-solid fa-pen-to-square"></i></button>
+                                        <button type="button" onclick="deletarAtivo('${a.id}')" title="Excluir" style="background:none; border:none; color:#ef4444; cursor:pointer; font-size:1.1rem;"><i class="fa-solid fa-trash-can"></i></button>
+                                    </td>
+                                    <td style="padding: 0.8rem; font-weight: 600; color: var(--primary-blue);">${a.codigo || a.id.substring(0,8)}</td>
+                                    <td style="padding: 0.8rem;">${a.tipo}</td>
+                                    <td style="padding: 0.8rem;">${roomMap[a.sala] || '?'}</td>
+                                    <td style="padding: 0.8rem;">${a.modelo || '-'}</td>
+                                    <td style="padding: 0.8rem;"><span class="criticality-badge" style="background:${bg}; color:${fr}; font-size: 0.75rem; padding: 0.2rem 0.5rem; text-transform: uppercase;">${a.criticidade}</span></td>
                                 </tr>`;
                             });
-                            html += '</tbody></table>';
+                            html += '</tbody></table></div>';
                             ativosList.innerHTML = html;
                         }
                     })
-                    .catch(err => ativosList.innerHTML = '<p style="color:red">Erro de conexão.</p>');
+                    .catch(err => {
+                        console.error(err);
+                        ativosList.innerHTML = '<p style="color:red">Erro de conexão com o banco de dados.</p>';
+                    });
+                }
+                
+                carregarAtivos();
+                document.addEventListener('ativoCadastrado', carregarAtivos);
             }
         });
     </script>
 </body>
 </html>
+

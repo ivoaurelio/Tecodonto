@@ -82,7 +82,7 @@ body.admin-body {
 }
 
 .modern-form .form-group {
-    margin-bottom: 1.8rem;
+    margin-bottom: 1.2rem;
     position: relative;
 }
 
@@ -119,6 +119,8 @@ body.admin-body {
 }
 
 .modern-form input[type="text"],
+.modern-form input[type="email"],
+.modern-form input[type="password"],
 .modern-form select {
     width: 100%;
     padding: 1rem 1rem 1rem 2.8rem;
@@ -141,6 +143,8 @@ body.admin-body {
 }
 
 .modern-form input[type="text"]:focus,
+.modern-form input[type="email"]:focus,
+.modern-form input[type="password"]:focus,
 .modern-form select:focus {
     border-color: var(--primary-green);
     box-shadow: 0 0 0 4px rgba(93, 151, 50, 0.15);
@@ -148,6 +152,8 @@ body.admin-body {
 }
 
 .modern-form input[type="text"]:focus ~ .input-icon,
+.modern-form input[type="email"]:focus ~ .input-icon,
+.modern-form input[type="password"]:focus ~ .input-icon,
 .modern-form select:focus ~ .select-icon {
     color: var(--primary-green);
 }
@@ -255,4 +261,12 @@ body.admin-body {
     .admin-card {
         padding: 2rem 1.5rem;
     }
+}
+
+/* Força alinhamento à esquerda nas tabelas de relatórios/ativos do admin */
+.assets-table th, .assets-table td {
+    text-align: left !important;
+}
+.assets-table th:first-child, .assets-table td:first-child {
+    text-align: center !important;
 }
