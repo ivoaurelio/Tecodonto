@@ -120,18 +120,37 @@
 }
 
 /* Print specific rules */
-.print-header {
+.print-header, .no-screen {
     display: none;
 }
 
 @media print {
+    @page {
+        margin: 0; /* Remove default browser headers/footers completely */
+    }
+    
     body.admin-body {
-        background: white;
-        padding: 0;
+        background: white !important;
+        padding: 0 1cm 1cm 1cm !important; /* Force explicit physical margins */
+        margin: 0 !important;
+        box-sizing: border-box !important;
     }
     
     .navbar, .bg-shape, .no-print {
         display: none !important;
+    }
+
+    /* Force display of our custom print structures */
+    .print-header, .no-screen {
+        display: block !important;
+    }
+    
+    .print-table-header {
+        display: table-header-group !important;
+    }
+
+    .print-table-footer {
+        display: table-footer-group !important;
     }
     
     .admin-main.print-main {
@@ -139,6 +158,30 @@
         display: block;
     }
     
+    .print-header-content {
+        margin-bottom: 20px;
+    }
+
+    .print-footer {
+        display: flex !important;
+        position: fixed;
+        bottom: 15mm;
+        left: 15mm;
+        right: 15mm;
+        height: 30px;
+        justify-content: space-between;
+        align-items: flex-end;
+        font-size: 10px;
+        color: #64748b;
+        border-top: 1px solid #e2e8f0;
+        padding-top: 10px;
+        page-break-inside: avoid;
+    }
+
+    /* Pagination CSS trick */
+    .page-number::after {
+        content: counter(page);
+    }
     .admin-container {
         max-width: 100% !important;
         width: 100%;
@@ -151,6 +194,17 @@
         border: none !important;
         padding: 0 !important;
         background: transparent !important;
+        overflow: visible !important;
+        max-width: none !important;
+    }
+
+    /* CRÍTICO: Remover scroll horizontal/overflow hidden durante a impressão
+       para o motor do navegador poder quebrar as páginas corretamente */
+    div, .report-content, #maintenance-results {
+        overflow: visible !important;
+        overflow-x: visible !important;
+        max-width: none !important;
+        height: auto !important;
     }
 
     .room-section {
@@ -186,15 +240,50 @@
     }
     
     .assets-table {
-        border: 1px solid #ccc;
-        box-shadow: none;
+        border: 1px solid #000 !important;
+        box-shadow: none !important;
+        min-width: 0 !important;
+        width: 100% !important;
+        table-layout: auto !important;
+        page-break-inside: auto !important;
+        display: table !important;
+        visibility: visible !important;
     }
     
+    .assets-table thead {
+        display: table-header-group !important;
+    }
+
+    .assets-table tbody {
+        display: table-row-group !important;
+        visibility: visible !important;
+    }
+
     .assets-table th {
         background-color: #f0f0f0 !important;
-        -webkit-print-color-adjust: exact;
-        print-color-adjust: exact;
-        color: black;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+        color: black !important;
+        display: table-cell !important;
+        border: 1px solid #ccc !important;
+        visibility: visible !important;
+    }
+
+    .assets-table tr {
+        page-break-inside: avoid !important;
+        page-break-after: auto !important;
+        display: table-row !important;
+        visibility: visible !important;
+    }
+
+    .assets-table td {
+        white-space: normal !important;
+        word-wrap: break-word !important;
+        color: black !important;
+        display: table-cell !important;
+        border: 1px solid #eee !important;
+        visibility: visible !important;
+        opacity: 1 !important;
     }
     
     .criticality-badge {

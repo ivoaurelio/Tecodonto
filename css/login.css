@@ -66,8 +66,11 @@
 }
 
 .login-logo {
-    height: 50px;
-    margin-bottom: 1.5rem;
+    height: 70px;
+    width: auto;
+    object-fit: contain;
+    display: block;
+    margin: 0 auto 1.5rem auto;
     filter: drop-shadow(0 4px 6px rgba(0,0,0,0.1));
 }
 

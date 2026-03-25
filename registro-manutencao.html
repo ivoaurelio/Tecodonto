@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registro de Manutenção | Tecodonto</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/admin.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="js/supabase.js"></script>
+    <script src="js/auth.js"></script>
+</head>
+
+<body class="admin-body">
+    <!-- HIDDEN DATA ANCHORS FOR auth.js -->
+    <img id="print-clinic-logo" src="" style="display: none;">
+    <h2 id="print-clinic-name" style="display: none;"></h2>
+    <header class="navbar scrolled" id="navbar">
+        <div class="container nav-container">
+            <a href="index.html" class="logo">
+                <img src="assets/logo.png" alt="Tecodonto Logo" id="header-logo">
+            </a>
+            <nav class="nav-menu">
+                <ul class="nav-list">
+                    <li><a href="admin.html" class="nav-link">Painel</a></li>
+                    <li><a href="cadastro-salas.html" class="nav-link">Salas</a></li>
+                    <li><a href="cadastro-ativos.html" class="nav-link">Ativos</a></li>
+                    <li><a href="relatorio.html" class="nav-link">Relatório</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <main class="admin-main">
+        <div class="admin-container fade-in-up" style="max-width: 1200px;">
+            <div class="form-header">
+                <div class="icon-wrapper" style="background: linear-gradient(135deg, #1d4ed8, #1e3a8a); color: white;">
+                    <i class="fa-solid fa-screwdriver-wrench"></i>
+                </div>
+                <h1>Registro de <span>Manutenção</span></h1>
+                <p>Controle preventivo e corretivo dos ativos da clínica.</p>
+            </div>
+
+            <div class="admin-card">
+                <form id="form-registro-manutencao" class="modern-form">
+                    
+                    <input type="hidden" name="formType" value="RegistroManutencao">
+                    
+                    <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                        <!-- LOCALIZAÇÃO / SALA -->
+                        <div class="form-group">
+                            <label for="registeredRoom">Selecione a Sala</label>
+                            <div class="select-wrapper">
+                                <select id="registeredRoom" name="registeredRoom" required>
+                                    <option value="" disabled selected>Buscando salas...</option>
+                                </select>
+                                <i class="fa-solid fa-chevron-down select-icon"></i>
+                            </div>
+                        </div>
+
+                        <!-- ATIVO DA SALA -->
+                        <div class="form-group">
+                            <label for="assetSelect">Selecione o Ativo</label>
+                            <div class="select-wrapper">
+                                <select id="assetSelect" name="assetSelect" required disabled>
+                                    <option value="" disabled selected>Primeiro escolha uma sala acima</option>
+                                </select>
+                                <i class="fa-solid fa-chevron-down select-icon"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- TIPO DE MANUTENÇÃO -->
+                    <div class="form-group">
+                        <label for="serviceType">Tipo de Atendimento</label>
+                        <div class="select-wrapper">
+                            <select id="serviceType" name="serviceType" required>
+                                <option value="" disabled selected>Selecione a natureza do serviço</option>
+                                <option value="Preventivo">Preventivo (Revisão periódica)</option>
+                                <option value="Preditivo">Preditivo (Monitoramento e análise diagnóstica)</option>
+                                <option value="Corretivo">Corretivo (Reparo de falha ou quebra)</option>
+                            </select>
+                            <i class="fa-solid fa-chevron-down select-icon"></i>
+                        </div>
+                    </div>
+
+                    <!-- DATAS -->
+                    <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                        <div class="form-group">
+                            <label for="serviceDate">Data do Atendimento</label>
+                            <div class="input-wrapper">
+                                <i class="fa-regular fa-calendar-days input-icon"></i>
+                                <input type="date" id="serviceDate" name="serviceDate" required style="padding-left: 2.8rem; height: 3.2rem;">
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="nextServiceDate">Data do Próximo Atendimento</label>
+                            <div class="input-wrapper">
+                                <i class="fa-regular fa-calendar-check input-icon"></i>
+                                <input type="date" id="nextServiceDate" name="nextServiceDate" required style="padding-left: 2.8rem; height: 3.2rem;">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- DESCRIÇÃO -->
+                    <div class="form-group">
+                        <label for="serviceDescription">Descrição do Serviço <span style="font-size: 0.8rem; font-weight: normal; color: #64748b; float: right;" id="charCount">0/200</span></label>
+                        <textarea id="serviceDescription" name="serviceDescription" rows="4" maxlength="200" required placeholder="Descreva brevemente o serviço realizado..." style="width: 100%; padding: 1rem; border: 1px solid var(--border-color); border-radius: 8px; font-family: 'Inter', sans-serif; resize: vertical;"></textarea>
+                    </div>
+
+                    <div style="display: flex; gap: 1rem; margin-top: 1rem; align-items: stretch;">
+                        <button type="submit" class="btn btn-primary btn-submit" id="submitBtnManutencao" style="margin: 0; background: #1d4ed8; border: none; flex: 1; color: white; padding: 0.8rem 1.5rem; border-radius: 8px; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 0.5rem;">
+                            <span class="btn-text">Salvar Registro</span>
+                            <i class="fa-solid fa-file-signature btn-icon" style="margin: 0;"></i>
+                            <span class="loader" style="display: none;"></span>
+                        </button>
+                        <button type="reset" class="btn" style="margin: 0; background: #f97316; color: white; border: none; font-weight: 600; padding: 0.8rem 1.5rem; border-radius: 8px; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 0.5rem;">
+                            <i class="fa-solid fa-eraser"></i> Limpar
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Lista de Manutenções Recentes -->
+            <div id="manutencoes-container" class="admin-card" style="margin-top: 2rem; overflow: hidden; max-width: 100%;">
+                <h3 style="margin-bottom: 1.5rem; color: var(--text-dark); border-bottom: 1px solid #f1f5f9; padding-bottom: 0.5rem;"><i class="fa-solid fa-clock-rotate-left"></i> Histórico Recente</h3>
+                <div id="manutencoesList" style="padding: 1rem;">
+                    <p style="color: var(--text-light); text-align: center;"><span class="loader" style="display:inline-block; border-top-color: #1d4ed8; width:20px; height:20px;"></span> Carregando histórico...</p>
+                </div>
+            </div>
+
+        </div>
+        <div class="bg-shape shape-1"></div>
+        <div class="bg-shape shape-2"></div>
+    </main>
+
+    <script src="js/admin.js"></script>
+    <script src="js/manutencao.js"></script>
+</body>
+</html>

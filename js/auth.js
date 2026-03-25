@@ -66,13 +66,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Replace generic form-header icons with Clinic Logo & Name
     const formHeaders = document.querySelectorAll('.form-header .icon-wrapper');
-    if (formHeaders.length > 0) {
-        const activeUserName = sessionStorage.getItem('userName');
-        if (activeUserName) {
-            window.supabaseFetch(`clinicas?user_name=eq.${encodeURIComponent(activeUserName)}&select=nome,logo`)
-                .then(data => {
-                    const clinicData = (data && data.length > 0) ? data[0] : { nome: activeUserName, logo: null };
-                    
+    const activeUserName = sessionStorage.getItem('userName');
+    if (activeUserName) {
+        window.supabaseFetch(`clinicas?user_name=eq.${encodeURIComponent(activeUserName)}&select=nome,logo`)
+            .then(data => {
+                const clinicData = (data && data.length > 0) ? data[0] : { nome: activeUserName, logo: null };
+                
+                if (formHeaders.length > 0) {
                     formHeaders.forEach(wrapper => {
                         wrapper.innerHTML = '';
                         wrapper.style.background = 'transparent';
@@ -82,27 +82,57 @@ document.addEventListener('DOMContentLoaded', () => {
                         wrapper.style.flexDirection = 'column';
                         wrapper.style.marginBottom = '1rem';
                         wrapper.style.display = 'flex';
-                        if (clinicData.logo && clinicData.logo.trim() !== '') {
-                            let imageSrc = clinicData.logo.trim();
-                            if (!imageSrc.startsWith('http') && !imageSrc.startsWith('data:')) {
-                                imageSrc = 'data:image/png;base64,' + imageSrc;
-                            }
-                            wrapper.innerHTML = `<img src="${imageSrc}" style="max-width: 140px; max-height: 80px; object-fit: contain; margin-bottom: 0.5rem; border-radius: 4px;" onerror="this.style.display='none'">`;
-                        } else {
-                            wrapper.innerHTML = '';
-                        }
                         
-                        wrapper.innerHTML += `<h3 style="color: var(--primary-blue); margin: 0; font-size: 1.15rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px;">${clinicData.nome}</h3>`;
+                        wrapper.innerHTML = `<h3 style="color: var(--primary-blue); margin: 0; font-size: 1.15rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px;">${clinicData.nome}</h3>`;
                     });
-                })
-                .catch(err => {
+                }
+
+                // WHITELABEL: Swap Navbar Logo for active Clinic Logo (executed regardless of form headers)
+                const headerLogo = document.getElementById('header-logo');
+                let processedSrc = null;
+                
+                if (clinicData.logo && clinicData.logo.trim() !== '') {
+                    processedSrc = clinicData.logo.trim();
+                    if (!processedSrc.startsWith('http') && !processedSrc.startsWith('data:')) processedSrc = 'data:image/png;base64,' + processedSrc;
+                }
+
+                if (headerLogo && processedSrc) {
+                    headerLogo.src = processedSrc;
+                }
+
+                // REPORT PRINT HEADER: Inject Clinic Logo and Name into print-exclusive DOM elements
+                const printClinicLogo = document.getElementById('print-clinic-logo');
+                const printClinicName = document.getElementById('print-clinic-name');
+                if (printClinicLogo && processedSrc) {
+                    printClinicLogo.src = processedSrc;
+                }
+                if (printClinicName) {
+                    printClinicName.textContent = clinicData.nome || activeUserName;
+                }
+
+                // WATERMARK: Inject 'Powered by TecOdonto' below header, precisely aligned with the left logo
+                const navContainer = document.querySelector('.nav-container');
+                if (navContainer && !navContainer.querySelector('.powered-by')) {
+                    navContainer.style.position = 'relative';
+                    
+                    const poweredDiv = document.createElement('div');
+                    poweredDiv.className = 'powered-by';
+                    poweredDiv.style.cssText = 'position: absolute; left: 0; bottom: -28px; display: flex; align-items: center; justify-content: flex-start; opacity: 0.8; z-index: 10; font-size: 0.8rem;';
+                    
+                    poweredDiv.innerHTML = `<span style="color: var(--text-light); margin-right: 0.4rem;">powered by</span><img src="assets/logo.png" style="height: 18px; object-fit: contain; opacity: 0.9;" alt="TecOdonto">`;
+                    
+                    navContainer.appendChild(poweredDiv);
+                }
+            })
+            .catch(err => {
+                if (formHeaders.length > 0) {
                     formHeaders.forEach(wrapper => {
                         wrapper.innerHTML = `<h3 style="color: var(--primary-blue); margin: 0;">${activeUserName}</h3>`;
                         wrapper.style.background = 'transparent';
                         wrapper.style.boxShadow = 'none';
                     });
-                });
-        }
+                }
+            });
     }
 });
 
@@ -118,6 +148,7 @@ function applyRoleRestrictions(role) {
     const reqSuper = document.querySelectorAll('.req-superadmin');
     const reqAdmin = document.querySelectorAll('.req-admin');
     const reqSuporte = document.querySelectorAll('.req-suporte');
+    const reqTecnico = document.querySelectorAll('.req-tecnico');
 
     // Desabilitador Helper
     const disableElements = (elements) => {
@@ -139,11 +170,18 @@ function applyRoleRestrictions(role) {
         disableElements(reqSuporte);
         disableElements(reqAdmin);
         disableElements(reqSuper);
+        disableElements(reqTecnico);
     } 
     else if (role === 'Suporte') {
         disableElements(reqAdmin);
         disableElements(reqSuper);
+        disableElements(reqTecnico);
     } 
+    else if (role === 'Técnico') {
+        disableElements(reqSuporte);
+        disableElements(reqAdmin);
+        disableElements(reqSuper);
+    }
     else if (role === 'Administrador') {
         disableElements(reqSuper);
     }

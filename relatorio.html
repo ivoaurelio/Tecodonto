@@ -7,6 +7,25 @@
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="css/admin.css">
     <link rel="stylesheet" href="css/relatorio.css">
+    
+    <!-- HARD OVERRIDE FOR PRINT CACHE AND WEB-KIT BUGS -->
+    <style>
+        @media screen {
+            .table-responsive { overflow-x: auto; width: 100%; }
+        }
+        @media print {
+            .table-responsive { overflow: visible !important; overflow-x: visible !important; width: 100% !important; max-width: 100% !important; display: block !important; }
+            .assets-table { min-width: 0 !important; width: 100% !important; table-layout: auto !important; height: auto !important; max-height: none !important; }
+            .assets-table td, .assets-table th { white-space: normal !important; word-wrap: break-word !important; color: black !important; border: 1px solid #ccc !important; }
+            .assets-table tr { page-break-inside: auto !important; page-break-after: auto !important; page-break-before: auto !important; height: auto !important; }
+            .admin-card, .report-card, #maintenance-results, #report-content { overflow: visible !important; height: auto !important; max-height: none !important; }
+            
+            /* DISSOLVE NESTED TABLE BUG: Ensure native page breaking margin and zero out browser stamps */
+            @page { margin: 0 !important; }
+            .print-row-only { display: table-row !important; }
+        }
+    </style>
+    
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
@@ -16,6 +35,19 @@
     <script src="js/auth.js"></script>
 </head>
 <body class="admin-body">
+    <!-- HIDDEN DATA ANCHORS FOR auth.js -->
+    <img id="print-clinic-logo" src="" style="display: none;">
+    <h2 id="print-clinic-name" style="display: none;"></h2>
+
+    <!-- PRINT FIXED FOOTER -->
+    <div class="print-footer no-screen">
+        <div style="display: flex; align-items: center;">
+            <span style="margin-right: 5px;">Powered by</span>
+            <img src="assets/logo.png" style="height: 18px; object-fit: contain; filter: grayscale(100%) opacity(0.7);" alt="TecOdonto">
+        </div>
+        <div class="page-number"></div>
+    </div>
+
     <header class="navbar scrolled" id="navbar">
         <div class="container nav-container">
             <a href="index.html" class="logo">
@@ -38,9 +70,9 @@
                 <div class="icon-wrapper">
                     <i class="fa-solid fa-file-lines"></i>
                 </div>
-                <h1>Relatório de <span>Manutenção</span></h1>
-                <p>Visão geral de todas as salas e ativos cadastrados na clínica.</p>
-                <div class="report-actions">
+                <h1>Central de <span>Relatórios</span></h1>
+                <p>Gere e imprima listagens de equipamentos ou histórico de manutenções.</p>
+                <div class="report-actions" style="margin-top: 1rem;">
                     <button id="btn-print" class="btn btn-primary" onclick="window.print()">
                         <i class="fa-solid fa-print"></i> Imprimir / PDF
                     </button>
@@ -50,14 +82,67 @@
                 </div>
             </div>
 
-            <!-- Print Header only visible during print -->
-            <div class="print-header">
-                <h2>Tecodonto - Relatório de Manutenção e Ativos</h2>
-                <p id="print-date"></p>
-                <hr>
+            <!-- SELETOR DE RELATÓRIO (TABS) -->
+            <div class="report-tabs no-print" style="display: flex; gap: 1rem; margin-bottom: 2rem;">
+                <button type="button" class="btn btn-primary" id="btn-tab-admin" style="flex: 1; border-radius: 8px; font-weight: 600; transition: all 0.3s;">Relatório Administrativo</button>
+                <button type="button" class="btn btn-secondary" id="btn-tab-manut" style="flex: 1; border-radius: 8px; font-weight: 600; transition: all 0.3s;">Relatório de Manutenção</button>
             </div>
 
-            <div class="admin-card report-card">
+            <!-- CONTAINER MANUTENÇÃO (Filtros) -->
+            <div id="maintenance-filter-section" class="admin-card no-print" style="display: none; margin-bottom: 2rem; border-left: 4px solid #1d4ed8;">
+                <h3 style="margin-bottom: 1.5rem; color: var(--text-dark);"><i class="fa-solid fa-filter"></i> Filtros de Manutenção</h3>
+                <form id="form-filtro-manutencao" class="modern-form">
+                    <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                        <div class="form-group">
+                            <label>Selecione a Sala</label>
+                            <div class="select-wrapper">
+                                <select id="filterRoom" required>
+                                    <option value="" disabled selected>Carregando salas...</option>
+                                    <option value="ALL">Todas as Salas</option>
+                                </select>
+                                <i class="fa-solid fa-chevron-down select-icon"></i>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Selecione o Equipamento</label>
+                            <div class="select-wrapper">
+                                <select id="filterAsset" disabled>
+                                    <option value="ALL" selected>Todos os equipamentos</option>
+                                </select>
+                                <i class="fa-solid fa-chevron-down select-icon"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-top: 1rem;">
+                        <div class="form-group">
+                            <label>Data Inicial</label>
+                            <div class="input-wrapper">
+                                <i class="fa-regular fa-calendar-days input-icon"></i>
+                                <input type="date" id="filterStartDate" required style="padding-left: 2.8rem; height: 3.2rem; width: 100%; border-radius: 8px; border: 1px solid var(--border-color);">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Data Final</label>
+                            <div class="input-wrapper">
+                                <i class="fa-regular fa-calendar-check input-icon"></i>
+                                <input type="date" id="filterEndDate" required style="padding-left: 2.8rem; height: 3.2rem; width: 100%; border-radius: 8px; border: 1px solid var(--border-color);">
+                            </div>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary" id="btn-gerar-manutencao" style="margin-top: 1.5rem; width: 100%; background: #1d4ed8; color: white; padding: 1rem; border-radius: 8px; font-weight: 600; border: none; display: flex; justify-content: center; gap: 0.5rem; align-items: center;">
+                        <span class="btn-text">Gerar Relatório de Manutenção</span>
+                        <i class="fa-solid fa-magnifying-glass btn-icon"></i>
+                        <span class="loader" style="display: none; border-top-color: white; width: 20px; height: 20px;"></span>
+                    </button>
+                    <div id="filterMessage" style="color: #ef4444; font-size: 0.9rem; margin-top: 1rem; text-align: center; display: none;"></div>
+                </form>
+            </div>
+
+            <div style="height: 140px;" class="no-screen"></div>
+            <!-- INJECTING CONTENT HERE -->
+                    <tr>
+                        <td style="border: none; padding: 0;">
+                            <div class="admin-card report-card" style="overflow: hidden; max-width: 100%;">
                 <div id="loader-container" class="loader-container">
                     <div class="loader report-loader"></div>
                     <p>Buscando dados da nuvem...</p>
@@ -66,6 +151,9 @@
                 <div id="report-content" class="report-content" style="display: none;">
                     <!-- Javascript goes here -->
                 </div>
+
+                <!-- ADDED: Dedicated container for Maintenance Search Results to inherit print headers -->
+                <div id="maintenance-results" class="report-content" style="display: none;"></div>
             </div>
         </div>
         
