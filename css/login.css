@@ -49,7 +49,7 @@
     backdrop-filter: blur(20px);
     border: 1px solid rgba(255, 255, 255, 0.8);
     border-radius: 20px;
-    padding: 2.5rem 3rem;
+    padding: 1.5rem 2.5rem;
     box-shadow: 0 15px 35px rgba(14, 71, 132, 0.1);
     display: flex;
     flex-direction: column;
@@ -62,7 +62,7 @@
 
 .login-header {
     text-align: center;
-    margin-bottom: 2.0rem;
+    margin-bottom: 1.0rem;
 }
 
 .login-logo {

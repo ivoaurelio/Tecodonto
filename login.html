@@ -12,11 +12,23 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body class="login-body">
+    <!-- SITE NAVBAR FOR CONTINUOUS NAVIGATION -->
+    <header class="navbar scrolled" id="navbar">
+        <div class="container nav-container">
+            <a href="index.html" class="logo">
+                <img src="assets/logo.png" alt="Tecodonto Logo" id="header-logo">
+            </a>
+            <nav class="nav-menu">
+                <ul class="nav-list">
+                    <li><a href="index.html" class="nav-link" style="color: var(--primary-blue); font-weight: 600;"><i class="fa-solid fa-arrow-left"></i> Voltar ao Site</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
     
     <div class="login-container fade-in-up">
         <div class="login-card">
             <div class="login-header">
-                <img src="assets/logo.png" alt="Tecodonto Logo" class="login-logo">
                 <h2>Acesso ao Painel</h2>
                 <p>Gestão Inteligente de Clínicas</p>
             </div>
@@ -44,7 +56,7 @@
                     <div class="input-wrapper" style="position: relative;">
                         <i class="fa-solid fa-lock input-icon"></i>
                         <input type="password" id="loginPassword" name="loginPassword" placeholder="••••••••" required autocomplete="current-password" minlength="6" maxlength="8">
-                        <i class="fa-solid fa-eye" id="togglePassword" style="position: absolute; right: 1.2rem; top: 50%; transform: translateY(-50%); cursor: pointer; color: var(--text-light); font-size: 1.2rem; z-index: 5;" title="Mostrar senha"></i>
+                        <i class="fa-solid fa-eye" id="togglePassword" style="position: absolute; right: 1.5rem; top: 0; bottom: 0; margin: auto; height: fit-content; display: flex; align-items: center; cursor: pointer; color: var(--text-light); font-size: 1.2rem; z-index: 5;" title="Mostrar senha"></i>
                     </div>
                 </div>
 
