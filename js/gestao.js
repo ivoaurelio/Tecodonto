@@ -3,11 +3,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const userName = sessionStorage.getItem('userName');
     const userRole = sessionStorage.getItem('userRole');
 
-    // Customize title with clinic
-    const clinicNameDisplay = document.getElementById('clinic-name-display');
-    if (clinicNameDisplay && userName && userName !== 'MESTRE') {
-        clinicNameDisplay.innerHTML = `Equipe (${userName.toUpperCase()})`;
-    }
+    // Original logic that appended clinic name was completely removed based on user request
 
     const equipeList = document.getElementById('equipeList');
     const clinicasList = document.getElementById('clinicasList');
