@@ -110,19 +110,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     printClinicName.textContent = clinicData.nome || activeUserName;
                 }
 
-                // WATERMARK: Inject 'Powered by TecOdonto' below header, precisely aligned with the left logo
-                const navContainer = document.querySelector('.nav-container');
-                if (navContainer && !navContainer.querySelector('.powered-by')) {
-                    navContainer.style.position = 'relative';
-                    
-                    const poweredDiv = document.createElement('div');
-                    poweredDiv.className = 'powered-by';
-                    poweredDiv.style.cssText = 'position: absolute; left: 0; bottom: -28px; display: flex; align-items: center; justify-content: flex-start; opacity: 0.8; z-index: 10; font-size: 0.8rem;';
-                    
-                    poweredDiv.innerHTML = `<span style="color: var(--text-light); margin-right: 0.4rem;">powered by</span><img src="assets/logo.png" style="height: 18px; object-fit: contain; opacity: 0.9;" alt="TecOdonto">`;
-                    
-                    navContainer.appendChild(poweredDiv);
-                }
+                // Removed JS watermark injection as per user request
             })
             .catch(err => {
                 if (formHeaders.length > 0) {
